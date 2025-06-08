@@ -1,12 +1,9 @@
 package com.ecommerce.userauthservice.controllers;
 
 import com.ecommerce.userauthservice.dtos.LoginResponseDto;
+import com.ecommerce.userauthservice.dtos.UserResponseDto;
 import com.ecommerce.userauthservice.dtos.UserSignUpDto;
-import com.ecommerce.userauthservice.dtos.UserSignUpResponseDto;
-import com.ecommerce.userauthservice.exceptions.IncorrectPasswordException;
-import com.ecommerce.userauthservice.exceptions.PasswordLengthRestrictionsNotMet;
-import com.ecommerce.userauthservice.exceptions.UserAlreadyExist;
-import com.ecommerce.userauthservice.exceptions.UserNotFoundException;
+import com.ecommerce.userauthservice.exceptions.*;
 import com.ecommerce.userauthservice.models.Role;
 import com.ecommerce.userauthservice.models.Token;
 import com.ecommerce.userauthservice.models.User;
@@ -25,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<UserSignUpResponseDto> signUp(@RequestBody UserSignUpDto userSignUpDto) throws PasswordLengthRestrictionsNotMet, UserAlreadyExist {
+    public ResponseEntity<UserResponseDto> signUp(@RequestBody UserSignUpDto userSignUpDto) throws PasswordLengthRestrictionsNotMet, UserAlreadyExist {
         User user = authService.signUp(userSignUpDto.getUsername(), userSignUpDto.getPassword(), userSignUpDto.getEmail(), userSignUpDto.getRole());
         return new ResponseEntity<>(fromUser(user), HttpStatus.CREATED);
     }
@@ -36,9 +33,14 @@ public class AuthController {
         return new ResponseEntity<>(loginResponse(token), HttpStatus.OK);
     }
 
+    @GetMapping("/validate/{tokenValue}")
+    public ResponseEntity<UserResponseDto> validateToken(@PathVariable String tokenValue) throws InvalidTokenException {
+        User user = authService.validateToken(tokenValue);
+        return new ResponseEntity<>(fromUser(user), HttpStatus.FOUND);
+    }
 
-    private UserSignUpResponseDto fromUser(User user) {
-        UserSignUpResponseDto Dto = new UserSignUpResponseDto();
+    private UserResponseDto fromUser(User user) {
+        UserResponseDto Dto = new UserResponseDto();
         Dto.setId(user.getId());
         Dto.setUsername(user.getUsername());
         Dto.setEmail(user.getEmail());
@@ -52,7 +54,7 @@ public class AuthController {
 
     private LoginResponseDto loginResponse(Token token) {
         LoginResponseDto Dto = new LoginResponseDto();
-        Dto.setToken(token.getValue());
+        Dto.setToken(token.getTokenValue());
         return Dto;
     }
 }

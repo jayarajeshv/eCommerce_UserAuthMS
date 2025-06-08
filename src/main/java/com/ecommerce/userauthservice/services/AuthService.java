@@ -1,9 +1,6 @@
 package com.ecommerce.userauthservice.services;
 
-import com.ecommerce.userauthservice.exceptions.IncorrectPasswordException;
-import com.ecommerce.userauthservice.exceptions.PasswordLengthRestrictionsNotMet;
-import com.ecommerce.userauthservice.exceptions.UserAlreadyExist;
-import com.ecommerce.userauthservice.exceptions.UserNotFoundException;
+import com.ecommerce.userauthservice.exceptions.*;
 import com.ecommerce.userauthservice.models.Role;
 import com.ecommerce.userauthservice.models.Token;
 import com.ecommerce.userauthservice.models.User;
@@ -11,6 +8,7 @@ import com.ecommerce.userauthservice.repositories.RoleRepository;
 import com.ecommerce.userauthservice.repositories.TokenRepository;
 import com.ecommerce.userauthservice.repositories.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,11 +18,13 @@ public class AuthService implements IAuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TokenRepository tokenRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, TokenRepository tokenRepository) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, TokenRepository tokenRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tokenRepository = tokenRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class AuthService implements IAuthService {
         if (password.trim().length() < 6) {
             throw new PasswordLengthRestrictionsNotMet("Password Length Restrictions Not Met");
         }
-        newUuser.setPassword(password);
+        newUuser.setPassword(bCryptPasswordEncoder.encode(password));
         List<Role> roles = new ArrayList<>();
         Role newRole = new Role();
         newRole.setRoleName(role != null ? role : "USER");
@@ -62,12 +62,12 @@ public class AuthService implements IAuthService {
     @Override
     public Token login(String email, String password) throws UserNotFoundException, IncorrectPasswordException {
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User Not Found"));
-        if (user.getPassword() != null && user.getPassword().equals(password)) { // Enable BCrypt
+        if (user.getPassword() != null && bCryptPasswordEncoder.matches(password, user.getPassword())) {
             Optional<Token> optionalToken = tokenRepository.findTokenByUser(user);
             Token token;
             token = optionalToken.orElseGet(Token::new);
             token.setUser(user);
-            token.setValue(RandomStringUtils.randomAlphanumeric(128));
+            token.setTokenValue(RandomStringUtils.randomAlphanumeric(128));
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DAY_OF_MONTH, 30);
             Date expiryDate = calendar.getTime();
@@ -77,5 +77,13 @@ public class AuthService implements IAuthService {
         } else {
             throw new IncorrectPasswordException("Incorrect Password");
         }
+    }
+
+    public User validateToken(String tokenValue) throws InvalidTokenException {
+        Optional<Token> optionalToken1 = tokenRepository.findByTokenValueAndExpiresAtAfter(tokenValue, new Date());
+        if (optionalToken1.isEmpty()) {
+            throw new InvalidTokenException("Invalid Token");
+        }
+        return optionalToken1.get().getUser();
     }
 }
