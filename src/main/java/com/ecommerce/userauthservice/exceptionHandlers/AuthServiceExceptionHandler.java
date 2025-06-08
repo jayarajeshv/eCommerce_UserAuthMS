@@ -1,6 +1,7 @@
 package com.ecommerce.userauthservice.exceptionHandlers;
 
 import com.ecommerce.userauthservice.dtos.UserSignUpExceptionDto;
+import com.ecommerce.userauthservice.exceptions.IncorrectPasswordException;
 import com.ecommerce.userauthservice.exceptions.PasswordLengthRestrictionsNotMet;
 import com.ecommerce.userauthservice.exceptions.UserAlreadyExist;
 import com.ecommerce.userauthservice.exceptions.UserNotFoundException;
@@ -32,6 +33,14 @@ public class AuthServiceExceptionHandler {
         UserSignUpExceptionDto dto = new UserSignUpExceptionDto();
         dto.setMessage(exception.getMessage());
         dto.setResolution("Password should be least 6 characters");
+        return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<UserSignUpExceptionDto> handleIncorrectPasswordException(IncorrectPasswordException exception) {
+        UserSignUpExceptionDto dto = new UserSignUpExceptionDto();
+        dto.setMessage(exception.getMessage());
+        dto.setResolution("Please try with correct password");
         return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
     }
 
