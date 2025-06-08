@@ -8,6 +8,7 @@ import com.ecommerce.userauthservice.models.Role;
 import com.ecommerce.userauthservice.models.Token;
 import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.repositories.RoleRepository;
+import com.ecommerce.userauthservice.repositories.TokenRepository;
 import com.ecommerce.userauthservice.repositories.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,12 @@ import java.util.*;
 public class AuthService implements IAuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final TokenRepository tokenRepository;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, TokenRepository tokenRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
@@ -39,11 +42,7 @@ public class AuthService implements IAuthService {
         newUuser.setPassword(password);
         List<Role> roles = new ArrayList<>();
         Role newRole = new Role();
-        if (role != null) {
-            newRole.setRoleName(role);
-        } else {
-            newRole.setRoleName("USER");
-        }
+        newRole.setRoleName(role != null ? role : "USER");
         roles.add(newRole);
         newUuser.setRoles(roles);
         roleRepository.saveAll(roles);
@@ -64,12 +63,16 @@ public class AuthService implements IAuthService {
     public Token login(String email, String password) throws UserNotFoundException, IncorrectPasswordException {
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User Not Found"));
         if (user.getPassword() != null && user.getPassword().equals(password)) { // Enable BCrypt
-            Token token = new Token();
+            Optional<Token> optionalToken = tokenRepository.findTokenByUser(user);
+            Token token;
+            token = optionalToken.orElseGet(Token::new);
+            token.setUser(user);
             token.setValue(RandomStringUtils.randomAlphanumeric(128));
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DAY_OF_MONTH, 30);
             Date expiryDate = calendar.getTime();
             token.setExpiresAt(expiryDate);
+            tokenRepository.save(token);
             return token;
         } else {
             throw new IncorrectPasswordException("Incorrect Password");
