@@ -9,7 +9,7 @@ import java.util.Date;
 @Data
 @Entity
 public class Token extends BaseModel {
-    private String value;
+    private String tokenValue;
     private Date expiresAt;
     @ManyToOne
     private User user;
