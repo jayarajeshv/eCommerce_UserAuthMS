@@ -5,14 +5,15 @@ import com.ecommerce.userauthservice.exceptions.PasswordLengthRestrictionsNotMet
 import com.ecommerce.userauthservice.exceptions.UserAlreadyExist;
 import com.ecommerce.userauthservice.exceptions.UserNotFoundException;
 import com.ecommerce.userauthservice.models.Role;
+import com.ecommerce.userauthservice.models.Token;
 import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.repositories.RoleRepository;
 import com.ecommerce.userauthservice.repositories.UserRepository;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AuthService implements IAuthService {
@@ -61,10 +62,16 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public User login(String email, String password) throws UserNotFoundException, IncorrectPasswordException {
+    public Token login(String email, String password) throws UserNotFoundException, IncorrectPasswordException {
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User Not Found"));
         if (user.getPassword() != null && user.getPassword().equals(password)) { // Enable BCrypt
-            return user;
+            Token token = new Token();
+            token.setValue(RandomStringUtils.randomAlphanumeric(128));
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_MONTH, 30);
+            Date expiryDate = calendar.getTime();
+            token.setExpiresAt(expiryDate);
+            return token;
         } else {
             throw new IncorrectPasswordException("Incorrect Password");
         }

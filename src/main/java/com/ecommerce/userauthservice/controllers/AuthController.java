@@ -1,5 +1,6 @@
 package com.ecommerce.userauthservice.controllers;
 
+import com.ecommerce.userauthservice.dtos.LoginResponseDto;
 import com.ecommerce.userauthservice.dtos.UserSignUpDto;
 import com.ecommerce.userauthservice.dtos.UserSignUpResponseDto;
 import com.ecommerce.userauthservice.exceptions.IncorrectPasswordException;
@@ -7,6 +8,7 @@ import com.ecommerce.userauthservice.exceptions.PasswordLengthRestrictionsNotMet
 import com.ecommerce.userauthservice.exceptions.UserAlreadyExist;
 import com.ecommerce.userauthservice.exceptions.UserNotFoundException;
 import com.ecommerce.userauthservice.models.Role;
+import com.ecommerce.userauthservice.models.Token;
 import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.services.AuthService;
 import org.springframework.http.HttpStatus;
@@ -29,9 +31,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestHeader("email") String email, @RequestHeader("password") String password) throws UserNotFoundException, IncorrectPasswordException {
-        User user = authService.login(email, password);
-        return new ResponseEntity<>("Login Successful", HttpStatus.OK);
+    public ResponseEntity<LoginResponseDto> login(@RequestHeader("email") String email, @RequestHeader("password") String password) throws UserNotFoundException, IncorrectPasswordException {
+        Token token = authService.login(email, password);
+        return new ResponseEntity<>(loginResponse(token), HttpStatus.OK);
     }
 
 
@@ -45,6 +47,12 @@ public class AuthController {
             sb.append(role.getRoleName()).append(" ");
         }
         Dto.setRoles(sb.toString().trim());
+        return Dto;
+    }
+
+    private LoginResponseDto loginResponse(Token token) {
+        LoginResponseDto Dto = new LoginResponseDto();
+        Dto.setToken(token.getValue());
         return Dto;
     }
 }
