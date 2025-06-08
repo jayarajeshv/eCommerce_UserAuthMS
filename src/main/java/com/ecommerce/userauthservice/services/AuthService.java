@@ -10,7 +10,6 @@ import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.repositories.RoleRepository;
 import com.ecommerce.userauthservice.repositories.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
