@@ -33,7 +33,8 @@ public class AuthController {
         return new ResponseEntity<>(loginResponse(token), HttpStatus.OK);
     }
 
-    @GetMapping("/validate/{tokenValue}")
+    @PostMapping("/validate/{tokenValue}")
+    // Changed to replicate the issue with POST method from ProductService GET query
     public ResponseEntity<UserResponseDto> validateToken(@PathVariable String tokenValue) throws InvalidTokenException {
         User user = authService.validateToken(tokenValue);
         return new ResponseEntity<>(fromUser(user), HttpStatus.FOUND);
@@ -41,14 +42,16 @@ public class AuthController {
 
     private UserResponseDto fromUser(User user) {
         UserResponseDto Dto = new UserResponseDto();
-        Dto.setId(user.getId());
-        Dto.setUsername(user.getUsername());
-        Dto.setEmail(user.getEmail());
-        StringBuilder sb = new StringBuilder();
-        for (Role role : user.getRoles()) {
-            sb.append(role.getRoleName()).append(" ");
+        if (user != null) {
+            Dto.setId(user.getId());
+            Dto.setUsername(user.getUsername());
+            Dto.setEmail(user.getEmail());
+            StringBuilder sb = new StringBuilder();
+            for (Role role : user.getRoles()) {
+                sb.append(role.getRoleName()).append(" ");
+            }
+            Dto.setRoles(sb.toString().trim());
         }
-        Dto.setRoles(sb.toString().trim());
         return Dto;
     }
 
