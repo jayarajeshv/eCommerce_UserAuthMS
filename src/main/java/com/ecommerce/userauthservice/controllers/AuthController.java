@@ -36,6 +36,9 @@ public class AuthController {
     @GetMapping("/validate/{tokenValue}")
     public ResponseEntity<UserResponseDto> validateToken(@PathVariable String tokenValue) throws InvalidTokenException {
         User user = authService.validateToken(tokenValue);
+        if (user == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         return new ResponseEntity<>(fromUser(user), HttpStatus.FOUND);
     }
 

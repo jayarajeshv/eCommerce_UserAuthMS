@@ -80,10 +80,11 @@ public class AuthService implements IAuthService {
     }
 
     public User validateToken(String tokenValue) throws InvalidTokenException {
-        Optional<Token> optionalToken1 = tokenRepository.findByTokenValueAndExpiresAtAfter(tokenValue, new Date());
-        if (optionalToken1.isEmpty()) {
-            throw new InvalidTokenException("Invalid Token");
+        Optional<Token> optionalToken = tokenRepository.findByTokenValueAndExpiresAtAfter(tokenValue, new Date());
+        if (optionalToken.isEmpty()) {
+//            throw new InvalidTokenException("Invalid Token");
+            return null; // For compatibility with the previous code, returning null instead of throwing an exception
         }
-        return optionalToken1.get().getUser();
+        return optionalToken.get().getUser();
     }
 }
