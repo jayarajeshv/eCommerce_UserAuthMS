@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -15,9 +16,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -40,6 +41,8 @@ import java.util.UUID;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    @Autowired
+    BCryptPasswordEncoder passwordEncoder;
 
     @Bean
     @Order(1)
@@ -89,30 +92,28 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         UserDetails userDetails = User.builder()
                 .username("user")
-                .password("$2a$12$gg/07hwJTz8D5mlL6J6weeduLjYQkZxP6s9hIS4rMes2iwj1jj3Ci")
+                .password(passwordEncoder.encode("user_password"))
                 .roles("USER")
                 .build();
 
         return new InMemoryUserDetailsManager(userDetails);
     }
 
-    @Bean
-    public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oidc-client")
-                .clientSecret("{noop}secret")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-                .postLogoutRedirectUri("http://127.0.0.1:8080/")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-                .build();
-
-        return new InMemoryRegisteredClientRepository(oidcClient);
-    }
+//        @Bean
+//        public RegisteredClientRepository registeredClientRepository() {
+//            RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+//                    .clientId("jay-client")
+//                    .clientSecret(passwordEncoder.encode("secretPassword"))
+//                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+//                    .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//                    .redirectUri("https://oauth.pstmn.io/v1/callback")
+//                    .postLogoutRedirectUri("https://oauth.pstmn.io/v1/callback")
+//                    .scope("ADMIN")
+//                    .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+//                    .build();
+//            return new InMemoryRegisteredClientRepository(oidcClient);
+//        }
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
