@@ -13,7 +13,6 @@ import java.util.List;
 @JsonDeserialize
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class CustomUserDetails implements UserDetails {
     private String username;
     private String password;

@@ -9,7 +9,6 @@ import org.springframework.security.core.GrantedAuthority;
 @JsonDeserialize
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public class CustomGrantedAuthority implements GrantedAuthority {
     private String authority;
 

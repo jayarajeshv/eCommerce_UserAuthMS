@@ -3,6 +3,8 @@ package com.ecommerce.userauthservice.security.services;
 import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.repositories.UserRepository;
 import com.ecommerce.userauthservice.security.models.CustomUserDetails;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@JsonDeserialize
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
