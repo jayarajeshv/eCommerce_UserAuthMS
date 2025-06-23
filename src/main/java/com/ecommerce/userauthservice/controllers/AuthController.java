@@ -8,6 +8,7 @@ import com.ecommerce.userauthservice.models.Role;
 import com.ecommerce.userauthservice.models.Token;
 import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.services.AuthService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<UserResponseDto> signUp(@RequestBody UserSignUpDto userSignUpDto) throws PasswordLengthRestrictionsNotMet, UserAlreadyExist {
+    public ResponseEntity<UserResponseDto> signUp(@RequestBody UserSignUpDto userSignUpDto) throws PasswordLengthRestrictionsNotMet, UserAlreadyExist, JsonProcessingException {
         User user = authService.signUp(userSignUpDto.getUsername(), userSignUpDto.getPassword(), userSignUpDto.getEmail(), userSignUpDto.getRole());
         return new ResponseEntity<>(fromUser(user), HttpStatus.CREATED);
     }

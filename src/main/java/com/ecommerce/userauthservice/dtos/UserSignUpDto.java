@@ -1,6 +1,5 @@
 package com.ecommerce.userauthservice.dtos;
 
-import com.ecommerce.userauthservice.models.Role;
 import lombok.Data;
 
 @Data

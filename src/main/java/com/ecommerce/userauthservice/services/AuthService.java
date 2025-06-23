@@ -1,5 +1,6 @@
 package com.ecommerce.userauthservice.services;
 
+import com.ecommerce.userauthservice.dtos.SendEmailEventDto;
 import com.ecommerce.userauthservice.exceptions.*;
 import com.ecommerce.userauthservice.models.Role;
 import com.ecommerce.userauthservice.models.Token;
@@ -7,7 +8,10 @@ import com.ecommerce.userauthservice.models.User;
 import com.ecommerce.userauthservice.repositories.RoleRepository;
 import com.ecommerce.userauthservice.repositories.TokenRepository;
 import com.ecommerce.userauthservice.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,16 +23,20 @@ public class AuthService implements IAuthService {
     private final RoleRepository roleRepository;
     private final TokenRepository tokenRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, TokenRepository tokenRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, TokenRepository tokenRepository, BCryptPasswordEncoder bCryptPasswordEncoder, KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tokenRepository = tokenRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public User signUp(String username, String password, String email, String role) throws UserAlreadyExist, PasswordLengthRestrictionsNotMet {
+    public User signUp(String username, String password, String email, String role) throws UserAlreadyExist, PasswordLengthRestrictionsNotMet, JsonProcessingException {
         Optional<User> user = userRepository.findUserByEmail(email);
         if (user.isPresent()) {
             throw new UserAlreadyExist("User Already Exist");
@@ -41,12 +49,24 @@ public class AuthService implements IAuthService {
         }
         newUuser.setPassword(bCryptPasswordEncoder.encode(password));
         List<Role> roles = new ArrayList<>();
-        Role newRole = new Role();
-        newRole.setRoleName(role != null ? role : "USER");
-        roles.add(newRole);
+        String newRole = role != null ? role : "USER";
+        roleRepository.findByRoleName(newRole).ifPresentOrElse(
+                roles::add,
+                () -> {
+                    Role newRoleObj = new Role();
+                    newRoleObj.setRoleName(newRole);
+                    roles.add(roleRepository.save(newRoleObj));
+                }
+        );
         newUuser.setRoles(roles);
         roleRepository.saveAll(roles);
-        return userRepository.save(newUuser);
+        newUuser = userRepository.save(newUuser);
+        SendEmailEventDto dto = new SendEmailEventDto();
+        dto.setToEmail(newUuser.getEmail());
+        dto.setSubject("Welcome to E-Commerce Platform");
+        dto.setBody("Hello " + newUuser.getUsername() + ",\n\nThank you for signing up on our platform. We are excited to have you with us!\n\nBest regards,\nE-Commerce Team");
+        kafkaTemplate.send("sendEmailEvent", objectMapper.writeValueAsString(dto));
+        return newUuser;
     }
 
     @Override
