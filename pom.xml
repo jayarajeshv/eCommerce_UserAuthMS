@@ -126,6 +126,7 @@
                 </configuration>
             </plugin>
         </plugins>
+        <finalName>UserAuthService</finalName>
     </build>
 
 </project>

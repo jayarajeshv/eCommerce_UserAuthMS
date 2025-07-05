@@ -8,10 +8,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class AdminInitializer {
@@ -29,7 +27,7 @@ public class AdminInitializer {
     @Bean
     public CommandLineRunner createAdminUser() {
         return args -> {
-            Optional<User> user = userRepository.findByUsername("admin");
+            List<User> user = userRepository.findAll();
             if (user.isEmpty()) {
                 User adminUser = new User();
                 adminUser.setUsername("admin");
