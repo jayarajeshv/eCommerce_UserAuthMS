@@ -48,4 +48,12 @@ public class AuthServiceExceptionHandler {
         dto.setResolution("Please try with correct token");
         return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(IncompleteUserDetailsException.class)
+    public ResponseEntity<UserAuthExceptionDto> handleIncompleteUserDetailsException(IncompleteUserDetailsException exception) {
+        UserAuthExceptionDto dto = new UserAuthExceptionDto();
+        dto.setMessage(exception.getMessage());
+        dto.setResolution("Please try with complete user details");
+        return new ResponseEntity<>(dto, HttpStatus.BAD_REQUEST);
+    }
 }

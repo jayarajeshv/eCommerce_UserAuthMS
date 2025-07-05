@@ -36,10 +36,13 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public User signUp(String username, String password, String email, String role) throws UserAlreadyExist, PasswordLengthRestrictionsNotMet, JsonProcessingException {
+    public User signUp(String username, String password, String email, String role) throws UserAlreadyExist, PasswordLengthRestrictionsNotMet, JsonProcessingException, IncompleteUserDetailsException {
         Optional<User> user = userRepository.findUserByEmail(email);
         if (user.isPresent()) {
             throw new UserAlreadyExist("User Already Exist");
+        }
+        if(username==null || password==null || email==null) {
+            throw new IncompleteUserDetailsException("Incomplete User Details");
         }
         User newUuser = new User();
         newUuser.setEmail(email);
@@ -101,10 +104,8 @@ public class AuthService implements IAuthService {
 
     public User validateToken(String tokenValue) throws InvalidTokenException {
         Optional<Token> optionalToken = tokenRepository.findByTokenValueAndExpiresAtAfter(tokenValue, new Date());
-        if (optionalToken.isEmpty()) {
-//            throw new InvalidTokenException("Invalid Token");
-            return null; // For compatibility with the previous code, returning null instead of throwing an exception
-        }
-        return optionalToken.get().getUser();
+        //            throw new InvalidTokenException("Invalid Token");
+        // For compatibility with the previous code, returning null instead of throwing an exception
+        return optionalToken.map(Token::getUser).orElse(null);
     }
 }

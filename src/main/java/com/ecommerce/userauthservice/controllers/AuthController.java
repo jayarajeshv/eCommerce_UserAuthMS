@@ -23,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<UserResponseDto> signUp(@RequestBody UserSignUpDto userSignUpDto) throws PasswordLengthRestrictionsNotMet, UserAlreadyExist, JsonProcessingException {
+    public ResponseEntity<UserResponseDto> signUp(@RequestBody UserSignUpDto userSignUpDto) throws PasswordLengthRestrictionsNotMet, UserAlreadyExist, JsonProcessingException, IncompleteUserDetailsException {
         User user = authService.signUp(userSignUpDto.getUsername(), userSignUpDto.getPassword(), userSignUpDto.getEmail(), userSignUpDto.getRole());
         return new ResponseEntity<>(fromUser(user), HttpStatus.CREATED);
     }
