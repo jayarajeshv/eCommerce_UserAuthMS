@@ -65,22 +65,22 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    @Order(2)
-//    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-//            throws Exception {
-//        http
-//                .csrf().disable()
-//                .authorizeHttpRequests((authorize) -> authorize
-//                        .requestMatchers("/auth/signUp").permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                // Form login handles the redirect to the login page from the
-//                // authorization server filter chain
-//                .formLogin(Customizer.withDefaults());
-//
-//        return http.build();
-//    }
+    @Bean
+    @Order(2)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+            throws Exception {
+        http
+                .csrf().disable()
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("/auth/signUp").permitAll()
+                        .anyRequest().authenticated()
+                )
+                // Form login handles the redirect to the login page from the
+                // authorization server filter chain
+                .formLogin(Customizer.withDefaults());
+
+        return http.build();
+    }
 
 //    @Bean
 //    public UserDetailsService userDetailsService() {
