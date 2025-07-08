@@ -141,6 +141,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().build();
+        return AuthorizationServerSettings.builder()
+                .jwkSetEndpoint("/.well-known/jwks.json")
+                .build();
     }
 }
