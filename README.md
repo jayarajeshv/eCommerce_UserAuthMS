@@ -3,7 +3,7 @@
 This microservice provides user authentication for the ECommerce platform. It supports user registration, login, JWT-based authentication, OAuth 2.0 and role-based access control.
 
 ---
-
+![Alt text](src/main/resources/draw.io/UserAuthMS.jpg)
 ## Features
 
 - User registration with validation
